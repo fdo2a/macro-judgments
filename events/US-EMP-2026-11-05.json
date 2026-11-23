@@ -1,0 +1,18 @@
+{
+  "event": "US-EMP-2026-11-05",
+  "kind": "employment",
+  "t": "2026-11-05",
+  "rule": "v1",
+  "status": "held_unconfirmed",
+  "confirm": null,
+  "tm1": null,
+  "y_tm1": null,
+  "y_t": null,
+  "d0": null,
+  "missing": null,
+  "q_at": null,
+  "deadline_at": null,
+  "info_cutoff": null,
+  "ai_brief_published_at": null,
+  "packet": null
+}
