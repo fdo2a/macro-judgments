@@ -1,0 +1,5 @@
+{
+  "event": "US-CPI-2026-11-10",
+  "status": "failed",
+  "reason": "403 Forbidden: the bot can't send messages to the bot"
+}
