@@ -1,0 +1,15 @@
+{
+  "event": "US-CPI-2026-11-10",
+  "kind": "cpi",
+  "t": "2026-11-10",
+  "rule": "v1",
+  "d0": 17,
+  "y_t": 473,
+  "status": "scoreable",
+  "t5": "2026-11-18",
+  "y_t5": 480,
+  "d5": 7,
+  "o": 1,
+  "overlap": false,
+  "ai_brief_published_at": "2026-11-11T00:13:36Z"
+}
