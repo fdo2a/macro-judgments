@@ -1,0 +1,14 @@
+{
+  "event": "US-CPI-2026-11-10",
+  "sha256": "fae3dfe1cecf5445536ca546213c9a5b926a64187c5cd1d6cef4c5124329ae01",
+  "plain": {
+    "event": "US-CPI-2026-11-10",
+    "model": "claude-opus-5-5",
+    "p": 52,
+    "prompt_sha256": "58be1c8f3ce0878597a09a0eaae58fbafe15445d7334c4baac9753bc7e0e758e",
+    "reason": "CPI 발표일에 2년물이 17bp 급등한 것은 큰 인플레이션 서프라이즈로 보이며, 정책금리 경로가 재평가되면 일정 부분 지속되는 경향이 있다. 다만 10월 중순 이후 482→446bp의 하락 추세에서 급반등한 상황이라 이후 5거래일 동안 일부 되돌림이 나올 가능성도 상당하다. 따라서 지속 확률은 50%를 약간 웃도는 수준으로 본다.",
+    "rule": "v1"
+  },
+  "nonce": "f7ebf63de0c9025168d58f4241b6ae63609ae2552028d1d86e5e03cf30ef54c1",
+  "served_model": "claude-opus-5-5"
+}
