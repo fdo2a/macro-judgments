@@ -93,6 +93,15 @@ def test_states_and_scores(repo):
     assert s['statement'].startswith('엣지 확인 안 됨')
 
 
+def test_missing_base_rate_stops_once_scoreable(repo):
+    os.remove(os.path.join(repo, 'rules', 'v1-base-rate.json'))
+    s = summarize(repo, ts('2026-12-01T00:00:00Z'))
+    assert s['base_rate_missing'] == ['cpi', 'employment']
+    full_event(repo)
+    with pytest.raises(SummaryError, match='기후값'):
+        summarize(repo, NOW)
+
+
 def test_ai_commit_after_deadline_is_late(repo):
     full_event(repo, ai_when='2026-12-11T01:30:00Z')
     s = summarize(repo, NOW)

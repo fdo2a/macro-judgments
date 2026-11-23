@@ -154,6 +154,7 @@ def summarize(root, now):
         raise SummaryError('rules/schedule.json 을 읽지 못했다')
     base = load(os.path.join(root, 'rules', 'v1-base-rate.json')) or {}
     rates = {k: (v.get('persist_pct') if isinstance(v, dict) else None) for k, v in (base.get('by_kind') or {}).items()}
+    missing_rates = [k for k in KIND_CODE if rates.get(k) is None]
 
     rows = [r for r in schedule['rows'] if dt.date.fromisoformat(r['t']) <= now.date()]
     events = []
@@ -174,6 +175,11 @@ def summarize(root, now):
                 h_state, h_p, n = human_status(root, eid, deadline)
                 rec['human'] = {'state': h_state, 'p': h_p, 'submissions': n}
         events.append(rec)
+
+    # 기후값이 없으면 채점할 사건이 생기는 순간 멈춘다(그 전에는 「미계산」으로 드러낸다).
+    for k in missing_rates:
+        if any(e['kind'] == k and e['result'] == '채점 가능' for e in events):
+            raise SummaryError(f'{k}: 기후값(rules/v1-base-rate.json)이 없는데 채점할 사건이 있다')
 
     counts = {k: {s: 0 for s in RESULT_STATES} for k in KIND_CODE}
     for e in events:
@@ -215,6 +221,7 @@ def summarize(root, now):
         'statement': EDGE_TEXT,
         'limits': rules['limits'],
         'base_rate': base.get('by_kind'),
+        'base_rate_missing': missing_rates,
         'result_counts': counts,
         'question_failed': {k: sum(1 for e in events if e['kind'] == k and e.get('delivery') == '질문 실패') for k in KIND_CODE},
         'human_late_only': tally('human', '마감 후만'),

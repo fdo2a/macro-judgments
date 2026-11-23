@@ -11,6 +11,7 @@ export const TICK_MS = 15 * 60e3;
 const CACHE_MS = 6 * 3600e3;
 const ACTIVE_DAYS = 30; // t 가 이보다 오래된 일정 줄은 보지 않는다(결과 기한 t+14일보다 넉넉히)
 const SITE_REPO = 'fdo2a/fdo2a.github.io';
+const LOOKAHEAD_DAYS = 45; // 앞으로 이 안에 CPI·고용 줄이 하나도 없으면 일정이 바닥난 것이다(둘 다 매달 있다)
 
 const iso = (ms) => new Date(ms).toISOString().replace('.000Z', 'Z');
 const KST = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
@@ -54,7 +55,12 @@ export class Core {
       await this.alert(`schedule:${etDate(now)}`, '일정 파일(rules/schedule.json)을 읽지 못했거나 형식이 다릅니다. 질문을 보낼 수 없습니다.');
       return;
     }
-    const minT = addDays(etDate(now), -ACTIVE_DAYS);
+    const today = etDate(now);
+    const horizon = addDays(today, LOOKAHEAD_DAYS);
+    if (!schedule.rows.some((r) => !r.cancelled && r.t >= today && r.t <= horizon)) {
+      await this.alert(`schedule-empty:${today}`, `일정 파일에 앞으로 ${LOOKAHEAD_DAYS}일 안의 CPI·고용 줄이 없습니다. 일정을 채우기 전에는 질문을 보내지 않습니다(rules-from-fred 의 schedule 실행).`);
+    }
+    const minT = addDays(today, -ACTIVE_DAYS);
     const rows = schedule.rows.filter((r) => !r.cancelled && r.t >= minT && now >= etInstant(r.t, 8, 30));
     const ctx = { now, schedule, series: null, seriesErr: null };
     for (const row of rows) {
@@ -73,8 +79,12 @@ export class Core {
     if (c && now - c.at < CACHE_MS) return c.value;
     let value = null;
     try { value = await this.gh.get(path); } catch { value = null; }
-    if (value) await this.storage.put(`cache:${key}`, { at: now, value });
-    return value || (c && c.value) || null;
+    if (value) {
+      await this.storage.put(`cache:${key}`, { at: now, value });
+      return value;
+    }
+    if (c) await this.alert(`stale:${key}:${etDate(now)}`, `${path} 를 새로 읽지 못해 ${Math.round((now - c.at) / 3600e3)}시간 전 사본으로 진행합니다.`);
+    return (c && c.value) || null;
   }
 
   async getSeries(ctx, t) {

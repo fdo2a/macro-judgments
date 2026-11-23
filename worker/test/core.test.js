@@ -213,6 +213,25 @@ test('알람 사슬 — 처리 중 예외가 나도 다음 알람은 이미 걸�
   assert.ok(w.sent.some((s) => s.includes('boom')));
 });
 
+test('일정이 바닥나면(앞으로 45일 안에 줄 없음) 하루 한 번 알린다', async () => {
+  const w = base();
+  w.files.set('rules/schedule.json', JSON.stringify({ rows: [{ kind: 'cpi', t: '2026-11-10' }] }));
+  w.at('2026-12-10T23:00:00Z'); await w.tick();
+  w.at('2026-12-10T23:15:00Z'); await w.tick();
+  assert.equal(w.sent.filter((s) => s.includes('앞으로 45일')).length, 1);
+  const ok = base();
+  ok.at('2026-12-01T23:00:00Z'); await ok.tick();
+  assert.equal(ok.sent.filter((s) => s.includes('앞으로 45일')).length, 0);
+});
+
+test('캐시가 지난 뒤 다시 못 읽으면 옛 사본으로 진행하되 알린다', async () => {
+  const w = base();
+  w.at('2026-12-01T23:00:00Z'); await w.tick();
+  w.files.delete('rules/schedule.json');
+  w.at('2026-12-02T08:00:00Z'); await w.tick();
+  assert.ok(w.sent.some((s) => s.includes('rules/schedule.json 를 새로 읽지 못해')));
+});
+
 test('일정 파일을 못 읽으면 알리고 아무것도 하지 않는다', async () => {
   const w = base();
   w.files.delete('rules/schedule.json');
