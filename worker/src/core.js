@@ -26,7 +26,7 @@ export class Core {
     this.env = env;
     this.rules = rules;
     this.log = log || (() => {});
-    this.gh = new GitHub({ fetch, token: env.GITHUB_TOKEN, repo: env.GITHUB_REPO });
+    this.gh = new GitHub({ fetch, token: env.GITHUB_TOKEN, repo: env.GITHUB_REPO, branch: env.GITHUB_BRANCH || 'main' });
     this.owner = Number(env.OWNER_ID);
   }
 
@@ -262,7 +262,10 @@ export class Core {
       const fomcDates = fomc.decisions.filter((r) => !r.cancelled).map((r) => r.date);
       out.overlap = overlaps(ev.t, out.t5, [...others, ...fomcDates]);
     }
-    const file = { event: ev.id, kind: ev.kind, t: ev.t, rule: this.rules.rule, d0: ev.sig.d0, y_t: ev.sig.y_t, ...out };
+    // 같은 날 AI 시황 브리프의 공개 시각 — Q 에는 아직 없을 때가 많아 결과 확정 때 다시 본다.
+    let brief = null;
+    try { brief = await this.gh.firstCommitDate(SITE_REPO, `posts/${ev.t}.html`); } catch { brief = 'lookup_failed'; }
+    const file = { event: ev.id, kind: ev.kind, t: ev.t, rule: this.rules.rule, d0: ev.sig.d0, y_t: ev.sig.y_t, ...out, ai_brief_published_at: brief };
     const r = await this.gh.ensure(`outcomes/${ev.id}.json`, file, 'event', `outcome ${ev.id} ${out.status}`);
     if (r.state === 'created' || r.state === 'exists') ev.outcomeWritten = true;
     else await this.writeFailed(`outcomes/${ev.id}.json`, r);

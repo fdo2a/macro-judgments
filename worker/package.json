@@ -2,7 +2,7 @@
   "name": "macro-judgments",
   "private": true,
   "type": "module",
-  "description": "Worker 코드는 의존성 0. 단위 시험: node --test (npm install 불필요). wrangler 는 배포용",
+  "description": "의존성은 @anthropic-ai/sdk 하나(AI 예측). 시험: npm install 뒤 node --test. wrangler 는 배포용",
   "scripts": {
     "test": "node --test"
   },

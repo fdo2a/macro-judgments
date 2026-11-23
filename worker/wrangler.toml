@@ -9,6 +9,8 @@ preview_urls = false
 
 [vars]
 GITHUB_REPO = "fdo2a/macro-judgments"
+# 리허설 때만 다른 가지로 바꾼다. 운영은 main.
+GITHUB_BRANCH = "main"
 
 [[durable_objects.bindings]]
 name = "JUDGMENTS"

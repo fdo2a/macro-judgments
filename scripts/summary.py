@@ -211,7 +211,7 @@ def summarize(root, now):
     ]
     return {
         'rule': rules['rule'],
-        'generated_at': now.strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'as_of_date': now.date().isoformat(),
         'statement': EDGE_TEXT,
         'limits': rules['limits'],
         'base_rate': base.get('by_kind'),

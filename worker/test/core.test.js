@@ -36,7 +36,7 @@ test('정상 경로 — Q 에 사건·질문·전달·AI 봉인, 답장 저장, 
   assert.equal(ev.q_at, '2026-12-10T23:00:00Z');
   assert.equal(ev.deadline_at, '2026-12-11T01:00:00Z');
   assert.equal(ev.confirm.source, 'fred');
-  assert.equal(ev.ai_brief_published_at, '2026-12-11T00:10:00Z');
+  assert.equal(ev.ai_brief_published_at, null, 'Q(18:00 ET)에는 사이트 브리프가 아직 없다');
   assert.equal(ev.packet.recent.at(-1)[0], T);
   assert.match(w.sent[0], /사건: US-CPI-2026-12-10/);
   assert.match(w.sent[0], /4\.60% → 12-10 4\.65% \(\+5bp\)/);
@@ -80,6 +80,7 @@ test('정상 경로 — Q 에 사건·질문·전달·AI 봉인, 답장 저장, 
   w.at('2026-12-17T23:00:00Z'); await w.tick();
   const out = w.file(`outcomes/${ID}.json`);
   assert.deepEqual([out.status, out.t5, out.d5, out.o, out.overlap], ['scoreable', '2026-12-17', 4, 1, false]);
+  assert.equal(out.ai_brief_published_at, '2026-12-11T00:10:00Z', '결과 확정 때 다시 조회한다');
   assert.equal((await w.storage.get(`ev:${ID}`)).final, 'done');
   // 끝난 뒤 답장은 열린 질문 없음
   await w.reply(1003, '50\nx');

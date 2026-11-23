@@ -15,10 +15,12 @@ function b64decode(s) {
 }
 
 export class GitHub {
-  constructor({ fetch, token, repo }) {
+  // branch: 리허설 때만 main 이 아닌 가지로 쓴다(main 은 이력을 되감을 수 없다).
+  constructor({ fetch, token, repo, branch = 'main' }) {
     this.fetch = fetch;
     this.token = token;
     this.repo = repo;
+    this.branch = branch;
   }
   headers() {
     return {
@@ -32,16 +34,19 @@ export class GitHub {
   url(path) {
     return `${API}/repos/${this.repo}/contents/${path.split('/').map(encodeURIComponent).join('/')}`;
   }
+  blobUrl(path) {
+    return `https://github.com/${this.repo}/blob/${this.branch}/${path}`;
+  }
 
   // → {state:'created', htmlUrl, commitUrl, commitDate} | {state:'failed', status}
   async create(path, obj, message) {
-    const body = JSON.stringify({ message, content: b64encode(JSON.stringify(obj, null, 2) + '\n') });
+    const body = JSON.stringify({ message, content: b64encode(JSON.stringify(obj, null, 2) + '\n'), branch: this.branch });
     const r = await this.fetch(this.url(path), { method: 'PUT', headers: this.headers(), body });
     if (r.status !== 201) return { state: 'failed', status: r.status };
     const j = await r.json();
     return {
       state: 'created',
-      htmlUrl: `https://github.com/${this.repo}/blob/main/${path}`,
+      htmlUrl: this.blobUrl(path),
       commitUrl: j.commit && j.commit.html_url,
       commitDate: j.commit && j.commit.committer && j.commit.committer.date,
     };
@@ -49,7 +54,7 @@ export class GitHub {
 
   // 파일 내용(JSON) 또는 없으면 null. 그 밖의 응답은 예외.
   async get(path) {
-    const r = await this.fetch(this.url(path), { headers: this.headers() });
+    const r = await this.fetch(`${this.url(path)}?ref=${encodeURIComponent(this.branch)}`, { headers: this.headers() });
     if (r.status === 404) return null;
     if (r.status !== 200) throw new Error(`github get ${r.status}`);
     const j = await r.json();
@@ -70,7 +75,7 @@ export class GitHub {
       return { state: 'pending' };
     }
     if (cur === null) return { state: 'pending' };
-    const htmlUrl = `https://github.com/${this.repo}/blob/main/${path}`;
+    const htmlUrl = this.blobUrl(path);
     return cur[markKey] === obj[markKey] ? { state: 'exists', htmlUrl } : { state: 'conflict', htmlUrl };
   }
 

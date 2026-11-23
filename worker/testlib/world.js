@@ -39,6 +39,7 @@ export function world({ schedule, fomc = [], yields = {}, released = {} } = {}) 
     telegramFail: null,             // (text) => bool
     ai: { status: 200, body: null },
     aiCalls: 0,
+    briefAt: '2026-12-11T00:10:00Z',
   };
   w.files.set('rules/schedule.json', JSON.stringify(schedule || { rows: [] }));
   w.files.set('rules/fomc-decisions.json', JSON.stringify({ decisions: fomc.map((date) => ({ date })) }));
@@ -67,7 +68,10 @@ export function world({ schedule, fomc = [], yields = {}, released = {} } = {}) 
       return resp(w.ai.status, w.ai.body);
     }
     if (url.host === 'api.github.com') {
-      if (url.pathname === '/repos/fdo2a/fdo2a.github.io/commits') return resp(200, [{ commit: { committer: { date: '2026-12-11T00:10:00Z' } } }]);
+      if (url.pathname === '/repos/fdo2a/fdo2a.github.io/commits') {
+        // 사이트 브리프는 w.briefAt 이후에만 존재한다(Q 에는 보통 아직 없다).
+        return resp(200, w.t >= Date.parse(w.briefAt) ? [{ commit: { committer: { date: w.briefAt } } }] : []);
+      }
       const m = url.pathname.match(/^\/repos\/fdo2a\/macro-judgments\/contents\/(.+)$/);
       if (!m) return resp(404, {});
       const path = decodeURIComponent(m[1]);

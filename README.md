@@ -48,5 +48,5 @@ Worker 는 파일을 **만들기만** 하고 고치지 않는다. `main` 은 강
 
 ## 구성
 
-- `worker/` — Cloudflare Worker(Durable Object 알람 15분 간격, 텔레그램 webhook). 시험: `cd worker && npm test`.
+- `worker/` — Cloudflare Worker(Durable Object 알람 15분 간격, 텔레그램 webhook). 시험: `cd worker && npm install && npm test`.
 - `scripts/` — 규칙 계산(Worker 와 같은 답, `rules/test-vectors.json`), 채점 요약, 기후값, 일정표, FOMC 목록. 시험: `python3 -m pytest scripts/tests`.

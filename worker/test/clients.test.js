@@ -55,6 +55,7 @@ function fakeGitHub() {
     const url = new URL(u);
     calls.push({ method: init.method || 'GET', path: url.pathname, body: init.body ? JSON.parse(init.body) : null, headers: init.headers });
     const m = url.pathname.match(/^\/repos\/fdo2a\/macro-judgments\/contents\/(.+)$/);
+    if (m && (init.method || 'GET') === 'GET') assert.equal(url.searchParams.get('ref'), 'main');
     if (m) {
       const path = decodeURIComponent(m[1]);
       if ((init.method || 'GET') === 'PUT') {
@@ -81,7 +82,8 @@ test('GitHub — 만들기 전용: sha·작성자·날짜를 보내지 않는다
   assert.equal(r.state, 'created');
   assert.equal(r.commitDate, '2026-11-10T22:00:00Z');
   const put = f.calls.find((c) => c.method === 'PUT');
-  assert.deepEqual(Object.keys(put.body).sort(), ['content', 'message']);
+  assert.deepEqual(Object.keys(put.body).sort(), ['branch', 'content', 'message']);
+  assert.equal(put.body.branch, 'main');
   assert.equal(put.headers.authorization, 'Bearer T');
   assert.deepEqual(await gh.get('human/US-CPI-2026-11-10/abc.json'), { text: '65\n근거', submission_hmac: 'h1' });
   assert.equal(await gh.get('nope.json'), null);
