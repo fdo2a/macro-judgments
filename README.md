@@ -49,4 +49,5 @@ Worker 는 파일을 **만들기만** 하고 고치지 않는다. `main` 은 강
 ## 구성
 
 - `worker/` — Cloudflare Worker(Durable Object 알람 15분 간격, 텔레그램 webhook). 시험: `cd worker && npm install && npm test`.
+  배포는 사람이 자기 터미널에서 `worker/setup.sh rehearsal` 또는 `worker/setup.sh main` 으로 한다(배포·비밀값·webhook·알람 시작). 리허설은 이름이 다른 Worker 로 띄워 상태가 운영에 섞이지 않게 한다.
 - `scripts/` — 규칙 계산(Worker 와 같은 답, `rules/test-vectors.json`), 채점 요약, 기후값, 일정표, FOMC 목록. 시험: `python3 -m pytest scripts/tests`.
