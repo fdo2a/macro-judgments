@@ -1,0 +1,14 @@
+{
+  "_doc": "봉인 지문 공통 예제. worker/src/seal.js 와 scripts/seal.py 가 같은 값을 내야 한다.",
+  "plain": {
+    "event": "US-CPI-2026-12-10",
+    "model": "claude-opus-5-5",
+    "p": 62,
+    "prompt_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "reason": "근거 한 줄",
+    "rule": "v1"
+  },
+  "nonce": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
+  "canonical": "{\"event\":\"US-CPI-2026-12-10\",\"model\":\"claude-opus-5-5\",\"p\":62,\"prompt_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"reason\":\"근거 한 줄\",\"rule\":\"v1\"}",
+  "sha256": "f813c91ffd30284a728e8e3ff2a84b9219ba8d17abd085e350969d5412bd71d8"
+}

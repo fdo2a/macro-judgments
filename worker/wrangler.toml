@@ -1,0 +1,25 @@
+# macro-judgments — 텔레그램 답장 받기 + 15분 알람(Durable Object). 배포는 사람이 직접 한다.
+# 비밀값은 이 파일에 쓰지 않는다(npx wrangler secret put).
+# Cron Trigger 는 쓰지 않는다 — 무료 요금제는 계정당 5개이고 기존 fdo2a-alerts 가 다 쓴다. 일정은 DO 알람 사슬로 돈다.
+name = "macro-judgments"
+main = "src/index.js"
+compatibility_date = "2025-10-01"
+workers_dev = true
+preview_urls = false
+
+[vars]
+GITHUB_REPO = "fdo2a/macro-judgments"
+
+[[durable_objects.bindings]]
+name = "JUDGMENTS"
+class_name = "Judgments"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Judgments"]
+
+[observability]
+enabled = true
+
+[observability.logs]
+invocation_logs = false

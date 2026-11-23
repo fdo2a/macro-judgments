@@ -1,0 +1,39 @@
+# 채점 요약 — 레포에 기록이 쌓일 때마다 + 하루 한 번 scores/summary.json 을 다시 만든다(파생물, 덮어써도 된다).
+# 시각이 중요한 일은 여기 두지 않는다(예약 실행이 몇 시간씩 늦을 수 있다). 그건 Worker 알람이 한다.
+name: summary
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['scores/**', 'README.md']
+  schedule:
+    - cron: '17 12 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: summary
+  cancel-in-progress: false
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # AI 봉인 커밋 시각을 git 이력에서 읽는다
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -q pytest && python -m pytest -q scripts/tests
+      - run: python scripts/summary.py --root . --out scores/summary.json
+      - name: commit if changed
+        run: |
+          if git diff --quiet -- scores/summary.json && git ls-files --error-unmatch scores/summary.json >/dev/null 2>&1; then exit 0; fi
+          git config user.name 'macro-judgments-bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scores/summary.json
+          git commit -q -m 'summary: 채점 요약 갱신'
+          for i in 1 2 3; do
+            git pull -q --rebase origin main && git push -q origin HEAD:main && exit 0
+            sleep 10
+          done
+          exit 1
