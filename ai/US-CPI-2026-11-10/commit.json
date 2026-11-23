@@ -1,0 +1,8 @@
+{
+  "event": "US-CPI-2026-11-10",
+  "rule": "v1",
+  "sha256": "fae3dfe1cecf5445536ca546213c9a5b926a64187c5cd1d6cef4c5124329ae01",
+  "model": "claude-opus-5-5",
+  "prompt_sha256": "58be1c8f3ce0878597a09a0eaae58fbafe15445d7334c4baac9753bc7e0e758e",
+  "sealed_at": "2026-11-23T15:06:26.699Z"
+}
