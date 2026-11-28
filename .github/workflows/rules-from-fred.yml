@@ -1,4 +1,4 @@
-# 손으로 돌리는 것 — FRED 키(저장소 비밀값 FRED_API_KEY)가 필요하다.
+# 손으로 돌리는 것(schedule 은 매주 월요일 자동으로도 돈다) — FRED 키(저장소 비밀값 FRED_API_KEY)가 필요하다.
 #  schedule: 앞으로의 CPI·고용 예정일을 rules/schedule.json 에 덧붙인다(지우지 않는다).
 #  probe: 탑다운 확인기가 기대는 FRED 응답 꼴을 로그에 찍는다(아무것도 커밋하지 않는다).
 #  bands: 탑다운 주식·달러 「중립」 경계를 한 번 계산해 rules/topdown-v1.json 에 적는다(이미 있으면 멈춘다).
@@ -6,6 +6,9 @@
 #             — BLS 공지와 대조해 drop 에 적고 다시 돌린다.
 name: rules-from-fred
 on:
+  # FRED 는 다음 발표일을 하나씩만 내준다(11/28 실측: 고용 12/4·CPI 12/10 두 줄) — 매주 schedule 을 다시 돌린다.
+  schedule:
+    - cron: '0 12 * * 1'
   workflow_dispatch:
     inputs:
       job:
@@ -28,7 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
-      UNTIL: ${{ inputs.until }}
+      JOB: ${{ inputs.job || 'schedule' }}
+      UNTIL: ${{ inputs.until || '2027-12-31' }}
       END: ${{ inputs.end }}
       DROP: ${{ inputs.drop }}
     steps:
@@ -37,21 +41,21 @@ jobs:
         with:
           python-version: '3.12'
       - name: schedule
-        if: inputs.job == 'schedule'
+        if: env.JOB == 'schedule'
         run: python scripts/build_schedule.py --until "$UNTIL"
       - name: probe
-        if: inputs.job == 'probe'
+        if: env.JOB == 'probe'
         run: python scripts/fred_probe.py
       - name: bands
-        if: inputs.job == 'bands'
+        if: env.JOB == 'bands'
         run: python scripts/topdown_bands.py --root .
       - name: base_rate
-        if: inputs.job == 'base_rate'
+        if: env.JOB == 'base_rate'
         run: |
           if [ -n "$DROP" ]; then python scripts/base_rate.py --end "$END" --out rules/v1-base-rate.json --drop $DROP
           else python scripts/base_rate.py --end "$END" --out rules/v1-base-rate.json; fi
       - name: commit
-        if: inputs.job != 'probe'
+        if: env.JOB != 'probe'
         run: |
           git config user.name 'macro-judgments-bot'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
