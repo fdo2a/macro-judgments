@@ -1,4 +1,15 @@
 {
- "note": "줄을 지우지 않는다. 날짜가 바뀌면 옛 줄에 \"cancelled\": \"사유\" 를 붙이고 새 줄을 더한다. scripts/build_schedule.py 가 FRED 예정일로 채운다.",
- "rows": []
+ "note": "줄을 지우지 않는다. 날짜가 바뀌면 옛 줄에 \"cancelled\": \"사유\" 를 붙이고 새 줄을 더한다.",
+ "rows": [
+  {
+   "kind": "employment",
+   "t": "2026-12-04",
+   "source": "FRED release/dates 예정일"
+  },
+  {
+   "kind": "cpi",
+   "t": "2026-12-10",
+   "source": "FRED release/dates 예정일"
+  }
+ ]
 }
