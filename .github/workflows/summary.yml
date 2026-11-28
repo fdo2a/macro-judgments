@@ -25,12 +25,20 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -q pytest && python -m pytest -q scripts/tests
       - run: python scripts/summary.py --root . --out scores/summary.json
+      # 탑다운 일지 — 재무부·FRED 를 읽는다. 키가 없으면 이 단계만 건너뛰고 알 수 있게 남긴다.
+      - name: topdown
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          if [ -z "$FRED_API_KEY" ]; then echo "::warning::FRED_API_KEY 비밀값이 없어 탑다운 요약을 건너뜀"; exit 0; fi
+          python scripts/topdown_summary.py --root . --out scores/topdown.json
       - name: commit if changed
         run: |
-          if git diff --quiet -- scores/summary.json && git ls-files --error-unmatch scores/summary.json >/dev/null 2>&1; then exit 0; fi
+          git add -N scores/topdown.json 2>/dev/null || true
+          if git diff --quiet -- scores/ && git ls-files --error-unmatch scores/summary.json >/dev/null 2>&1; then exit 0; fi
           git config user.name 'macro-judgments-bot'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add scores/summary.json
+          git add scores/
           git commit -q -m 'summary: 채점 요약 갱신'
           for i in 1 2 3; do
             git pull -q --rebase origin main && git push -q origin HEAD:main && exit 0

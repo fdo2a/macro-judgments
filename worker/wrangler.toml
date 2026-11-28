@@ -11,6 +11,9 @@ preview_urls = false
 GITHUB_REPO = "fdo2a/macro-judgments"
 # 리허설 때만 다른 가지로 바꾼다. 운영은 main.
 GITHUB_BRANCH = "main"
+# v1(CPI·고용 날 2년물 확률)은 보류 — "1" 이면 켠다. 탑다운 일지는 "0" 이면 끈다.
+V1_ENABLED = "0"
+TOPDOWN_ENABLED = "1"
 
 [[durable_objects.bindings]]
 name = "JUDGMENTS"

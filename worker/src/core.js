@@ -5,6 +5,7 @@ import { fetchTreasury, releaseHappened, SourceError } from './sources.js';
 import { GitHub } from './github.js';
 import { sendMessage } from './telegram.js';
 import { aiForecast } from './ai.js';
+import { TopDown } from './topdown.js';
 import { parseReply, hmacHex, sha256Hex, sealHash, randomHex, etInstant, etDate, addDays, eventId } from './util.js';
 
 export const TICK_MS = 15 * 60e3;
@@ -20,7 +21,8 @@ const pct = (bp) => (bp / 100).toFixed(2) + '%';
 const signed = (bp) => (bp > 0 ? '+' : '') + bp + 'bp';
 
 export class Core {
-  constructor({ storage, fetch, now, env, rules, log }) {
+  // rules = v1(CPI 날 확률, V1_ENABLED='1' 일 때만), tdRules = 탑다운 일지(TOPDOWN_ENABLED='0' 이 아니면)
+  constructor({ storage, fetch, now, env, rules, tdRules, log }) {
     this.storage = storage;
     this.fetch = fetch;
     this.now = now;
@@ -29,6 +31,8 @@ export class Core {
     this.log = log || (() => {});
     this.gh = new GitHub({ fetch, token: env.GITHUB_TOKEN, repo: env.GITHUB_REPO, branch: env.GITHUB_BRANCH || 'main' });
     this.owner = Number(env.OWNER_ID);
+    this.v1 = env.V1_ENABLED === '1';
+    this.td = tdRules && env.TOPDOWN_ENABLED !== '0' ? new TopDown(this, tdRules) : null;
   }
 
   // ── 알람 ───────────────────────────────────────────────────────────────
@@ -50,6 +54,18 @@ export class Core {
 
   async tick() {
     const now = this.now();
+    if (this.td) {
+      try {
+        await this.td.tick(now);
+      } catch (e) {
+        this.log({ op: 'td.tick', error: (e && e.message) || String(e) });
+        await this.alert(`td:tick:${etDate(now)}`, `탑다운 알람 처리 중 예상 밖 오류: ${(e && e.message) || e}`);
+      }
+    }
+    if (this.v1) await this.tickV1(now);
+  }
+
+  async tickV1(now) {
     const schedule = await this.cached('schedule', 'rules/schedule.json');
     if (!schedule || !Array.isArray(schedule.rows)) {
       await this.alert(`schedule:${etDate(now)}`, '일정 파일(rules/schedule.json)을 읽지 못했거나 형식이 다릅니다. 질문을 보낼 수 없습니다.');
@@ -289,7 +305,11 @@ export class Core {
     if (!m || !m.chat || m.chat.type !== 'private' || !m.from || m.from.id !== this.owner || m.chat.id !== this.owner) return { status: 200 };
     if (typeof m.text !== 'string') return { status: 200 };
     const now = this.now();
-    const ev = await this.openEvent();
+    const ev = this.v1 ? await this.openEvent() : null;
+    if (!ev && this.td) {
+      await this.td.webhook(m, update);
+      return { status: 200 };
+    }
     if (!ev) {
       await this.reply('지금 열린 질문이 없습니다. 기록하지 않았습니다.');
       return { status: 200 };

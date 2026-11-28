@@ -1,5 +1,7 @@
 # 손으로 돌리는 것 — FRED 키(저장소 비밀값 FRED_API_KEY)가 필요하다.
 #  schedule: 앞으로의 CPI·고용 예정일을 rules/schedule.json 에 덧붙인다(지우지 않는다).
+#  probe: 탑다운 확인기가 기대는 FRED 응답 꼴을 로그에 찍는다(아무것도 커밋하지 않는다).
+#  bands: 탑다운 주식·달러 「중립」 경계를 한 번 계산해 rules/topdown-v1.json 에 적는다(이미 있으면 멈춘다).
 #  base_rate: 규칙 v1 고정 전에 기후값을 한 번 계산한다. 한 달에 발표일이 둘 잡히면 실패로 끝나고 목록을 보여 준다
 #             — BLS 공지와 대조해 drop 에 적고 다시 돌린다.
 name: rules-from-fred
@@ -7,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       job:
-        description: schedule | base_rate
+        description: schedule | probe | bands | base_rate
         required: true
         default: schedule
       until:
@@ -37,12 +39,19 @@ jobs:
       - name: schedule
         if: inputs.job == 'schedule'
         run: python scripts/build_schedule.py --until "$UNTIL"
+      - name: probe
+        if: inputs.job == 'probe'
+        run: python scripts/fred_probe.py
+      - name: bands
+        if: inputs.job == 'bands'
+        run: python scripts/topdown_bands.py --root .
       - name: base_rate
         if: inputs.job == 'base_rate'
         run: |
           if [ -n "$DROP" ]; then python scripts/base_rate.py --end "$END" --out rules/v1-base-rate.json --drop $DROP
           else python scripts/base_rate.py --end "$END" --out rules/v1-base-rate.json; fi
       - name: commit
+        if: inputs.job != 'probe'
         run: |
           git config user.name 'macro-judgments-bot'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

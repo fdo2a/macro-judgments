@@ -2,6 +2,7 @@
 import { DurableObject } from 'cloudflare:workers';
 import { Core } from './core.js';
 import RULES from '../../rules/v1.json' with { type: 'json' };
+import TD_RULES from '../../rules/topdown-v1.json' with { type: 'json' };
 
 const MAX_UPDATE_BYTES = 64 * 1024;
 
@@ -13,7 +14,7 @@ function log(o) {
 export class Judgments extends DurableObject {
   constructor(ctx, env) {
     super(ctx, env);
-    this.core = new Core({ storage: ctx.storage, fetch: (u, i) => fetch(u, i), now: () => Date.now(), env, rules: RULES, log });
+    this.core = new Core({ storage: ctx.storage, fetch: (u, i) => fetch(u, i), now: () => Date.now(), env, rules: RULES, tdRules: TD_RULES, log });
   }
   async alarm() { await this.core.alarm(); }
   async kick() { await this.core.armIfMissing(); return this.core.health(); }

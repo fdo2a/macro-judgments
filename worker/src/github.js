@@ -79,6 +79,29 @@ export class GitHub {
     return cur[markKey] === obj[markKey] ? { state: 'exists', htmlUrl } : { state: 'conflict', htmlUrl };
   }
 
+  // 다른 레포 파일의 가장 오래된 커밋 → {sha, date} 또는 null
+  async firstCommit(repo, path) {
+    const u = `${API}/repos/${repo}/commits?path=${encodeURIComponent(path)}&per_page=100`;
+    const r = await this.fetch(u, { headers: this.headers() });
+    if (r.status !== 200) throw new Error(`github commits ${r.status}`);
+    const list = await r.json();
+    if (!Array.isArray(list) || list.length === 0) return null;
+    const c = list[list.length - 1];
+    const date = c.commit && c.commit.committer && c.commit.committer.date;
+    if (typeof c.sha !== 'string' || !date) throw new Error('github commits format');
+    return { sha: c.sha, date };
+  }
+
+  // 다른 레포의 파일(JSON)을 특정 커밋에서 읽는다. 없으면 null.
+  async getAt(repo, path, ref) {
+    const u = `${API}/repos/${repo}/contents/${path.split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent(ref)}`;
+    const r = await this.fetch(u, { headers: this.headers() });
+    if (r.status === 404) return null;
+    if (r.status !== 200) throw new Error(`github get ${r.status}`);
+    const j = await r.json();
+    return JSON.parse(b64decode(j.content));
+  }
+
   // 다른 레포 파일의 가장 오래된 커밋 시각(사이트 브리프가 처음 올라간 시각). 없으면 null.
   async firstCommitDate(repo, path) {
     const u = `${API}/repos/${repo}/commits?path=${encodeURIComponent(path)}&per_page=100`;
