@@ -1,6 +1,6 @@
 {
  "rule": "topdown-v1",
- "generated_at": "2026-11-28T06:25:31Z",
+ "generated_at": "2026-11-28T06:40:21Z",
  "note": "판단 기록의 확인일 뿐이다. 칸마다 1년에 확인되는 판단이 많지 않아 실력이나 엣지를 주장하지 않는다.",
  "counts": {
   "growth": {
@@ -59,8 +59,24 @@
   }
  },
  "overdue": [],
- "days": [],
- "days_total": 0,
+ "days": [
+  {
+   "t": "2026-11-27",
+   "question": "sent",
+   "written": false,
+   "entries": 0,
+   "critique": {
+    "ok": 0,
+    "failed": 0,
+    "missing": 0
+   },
+   "report": null,
+   "first_entry": null,
+   "report_seen": false,
+   "cells": {}
+  }
+ ],
+ "days_total": 1,
  "days_written": 0,
  "judgments": []
 }
